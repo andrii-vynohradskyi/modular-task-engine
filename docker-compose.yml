@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: taskengine-postgres
+    environment:
+      POSTGRES_DB: taskengine
+      POSTGRES_USER: taskengine
+      POSTGRES_PASSWORD: taskengine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  api:
+    build: .
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql+psycopg2://taskengine:taskengine@postgres:5432/taskengine
+
+  worker:
+    build: .
+    command: python -m app.workers.worker
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql+psycopg2://taskengine:taskengine@postgres:5432/taskengine
+
+volumes:
+  postgres_data:
