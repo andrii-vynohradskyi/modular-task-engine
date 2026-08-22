@@ -16,6 +16,7 @@ class TaskEvent(str, Enum):
     CANCEL = "cancel"
     WORKER_DIED = "worker_died"
 
+
 class InvalidTransition(Exception):
     pass
 

@@ -1,2 +1,8 @@
 test/
 /.venv/
+TODO.md
+pytest.ini
+Dockerfile
+docker-compose.yml
+Archive.zip
+.gitignore

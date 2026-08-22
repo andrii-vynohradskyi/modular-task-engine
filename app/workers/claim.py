@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 def claim_next_task(db: Session) -> tuple[Task, str] | None:
     attempt_id = str(uuid.uuid4())
-
+    print(1)
     row = db.execute(
         text("""
         UPDATE tasks
@@ -42,7 +42,7 @@ def claim_next_task(db: Session) -> tuple[Task, str] | None:
         """),
         {"attempt_id": attempt_id}
     ).fetchone()
-
+    print(row)
     if not row:
         db.rollback()
         return None
