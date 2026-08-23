@@ -1,6 +1,8 @@
+pytest
 pydantic-settings
 python-jose
 fastapi
 pydantic
 sqlalchemy
 passlib
+httpx
