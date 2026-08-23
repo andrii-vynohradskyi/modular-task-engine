@@ -4,3 +4,5 @@ from .task_effect import TaskEffect
 from .user import User
 from .refresh_token import RefreshToken
 from .worker import Worker
+from .rate_limits import RateLimit
+from .task_type_limits import TaskTypeLimit

@@ -1,5 +1,7 @@
 from sqlalchemy import text
 from app.database import SessionLocal
+from app.core.security import hash_password
+from app.core.config import settings
 
 db = SessionLocal()
 
@@ -27,6 +29,14 @@ db.execute(text("""
     INSERT INTO tasks (user_id, type, payload, status, priority, scheduled_at, max_runtime, attempts, max_attempts)
     VALUES (1, 'cleanup', '{"older_than_days": 7, "next_run_in_hours": 24}', 'pending', 0, now(), 300, 0, 3)
 """))
+
+# Add admin user
+password = hash_password(settings.ADMIN_PASSWORD)
+db.execute(text("""
+    INSERT INTO users (id, username, email, is_admin, hashed_password)
+    VALUES (1, :username, :email, :is_admin, :password)
+    ON CONFLICT (id) DO NOTHING
+"""), {"username": "admin", "password": password, "email": "admin@gmail.com", "is_admin": True})
 
 db.commit()
 db.close()

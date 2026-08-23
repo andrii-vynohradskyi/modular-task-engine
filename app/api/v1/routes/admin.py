@@ -4,9 +4,8 @@ from datetime import datetime, timedelta, timezone
 
 from app.api.dependencies import get_db
 from app.models.task import Task
-from app.schemas.admin import QueueTaskRead, ZombieRead, StatsRead
-
 from app.models.worker import Worker
+from app.schemas.admin import QueueTaskRead, ZombieRead, StatsRead
 
 HEARTBEAT_TIMEOUT = 30
 router = APIRouter()

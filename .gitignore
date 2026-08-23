@@ -6,3 +6,5 @@ Dockerfile
 docker-compose.yml
 Archive.zip
 .gitignore
+/.env/
+/.env
