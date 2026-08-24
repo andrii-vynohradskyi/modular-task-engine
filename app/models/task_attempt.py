@@ -5,7 +5,7 @@ class TaskAttempt(Base):
     __tablename__ = "task_attempts"
 
     id = Column(Integer, primary_key=True)
-    task_id = Column(Integer, ForeignKey("tasks.id"), nullable=False)
+    task_id = Column(Integer, ForeignKey("tasks.id", ondelete="CASCADE"), nullable=False)
 
     attempt_id = Column(String, nullable=False)
 
