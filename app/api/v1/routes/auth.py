@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.api.dependencies import get_db
 from app.models.user import User
@@ -32,7 +32,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     refresh_token = create_refresh_token(subject=user.id)
     # store hashed refresh in DB with expiry
     rt_hash = hash_token(refresh_token)
-    expires_at = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     db_rt = RefreshToken(user_id=user.id, token_hash=rt_hash, expires_at=expires_at)
     db.add(db_rt)
     db.commit()
@@ -75,7 +75,7 @@ def refresh(response: Response, refresh_token_cookie: str | None = Cookie(None),
     matched.revoked = True
     db.add(matched)
     new_hash = hash_token(new_refresh)
-    expires_at = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     db_new = RefreshToken(user_id=user_id, token_hash=new_hash, expires_at=expires_at)
     db.add(db_new)
     db.commit()
