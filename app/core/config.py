@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings
 from datetime import timedelta
 
@@ -14,6 +16,6 @@ class Settings(BaseSettings):
     ADMIN_PASSWORD: str
 
     class Config:
-        env_file = ".env"
+        env_file = Path(__file__).resolve().parents[2] / ".env"
 
 settings = Settings()
