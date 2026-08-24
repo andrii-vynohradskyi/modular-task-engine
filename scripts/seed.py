@@ -24,11 +24,6 @@ db.execute(text("""
     ON CONFLICT (type) DO NOTHING
 """))
 
-# First cleanup task
-db.execute(text("""
-    INSERT INTO tasks (user_id, type, payload, status, priority, scheduled_at, max_runtime, attempts, max_attempts)
-    VALUES (1, 'cleanup', '{"older_than_days": 7, "next_run_in_hours": 24}', 'pending', 0, now(), 300, 0, 3)
-"""))
 
 # Add admin user
 password = hash_password(settings.ADMIN_PASSWORD)
@@ -37,6 +32,13 @@ db.execute(text("""
     VALUES (1, :username, :email, :is_admin, :password)
     ON CONFLICT (id) DO NOTHING
 """), {"username": "admin", "password": password, "email": "admin@gmail.com", "is_admin": True})
+
+
+# First cleanup task
+db.execute(text("""
+    INSERT INTO tasks (user_id, type, payload, status, priority, scheduled_at, max_runtime, attempts, max_attempts)
+    VALUES (1, 'cleanup', '{"older_than_days": 7, "next_run_in_hours": 24}', 'pending', 0, now(), 300, 0, 3)
+"""))
 
 db.commit()
 db.close()

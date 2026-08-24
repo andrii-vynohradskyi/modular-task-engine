@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Any, Optional
 from datetime import datetime
 
@@ -19,8 +19,7 @@ class TaskRead(BaseModel):
     created_at: datetime
     progress: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class TaskAttemptRead(BaseModel):
     attempt_id: str
@@ -29,5 +28,4 @@ class TaskAttemptRead(BaseModel):
     status: str
     error: Optional[str]
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 class QueueTaskRead(BaseModel):
@@ -10,8 +10,7 @@ class QueueTaskRead(BaseModel):
     attempts: int
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ZombieRead(BaseModel):
     task_id: int
@@ -19,8 +18,7 @@ class ZombieRead(BaseModel):
     last_heartbeat_at: datetime
     seconds_dead: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class StatsRead(BaseModel):
     pending: int

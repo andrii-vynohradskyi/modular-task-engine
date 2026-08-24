@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 class UserBase(BaseModel):
     username: str
@@ -10,10 +10,7 @@ class UserCreate(BaseModel):
     password: str
 
 class UserRead(UserBase):
-    id: int
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)
 
 class UserUpdate(BaseModel):
     username: str | None = None

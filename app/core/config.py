@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from datetime import timedelta
 
 class Settings(BaseSettings):
@@ -15,7 +15,8 @@ class Settings(BaseSettings):
 
     ADMIN_PASSWORD: str
 
-    class Config:
-        env_file = Path(__file__).resolve().parents[2] / ".env"
+    model_config = SettingsConfigDict(
+        env_file=Path(__file__).resolve().parents[2] / ".env"
+    )
 
 settings = Settings()
