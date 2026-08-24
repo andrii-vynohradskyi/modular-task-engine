@@ -32,8 +32,6 @@ def regular_user(db):
 
     yield {"username": "test_regular", "password": "testpass123"}
 
-    db.execute(text("DELETE FROM refresh_tokens WHERE user_id IN (SELECT id FROM users WHERE username = :u)"),
-               {"u": "test_regular"})
     db.execute(text("DELETE FROM users WHERE username = 'test_regular'"))
     db.commit()
 
@@ -54,8 +52,6 @@ def admin_user(db):
 
     yield {"username": "test_admin", "password": "testpass123"}
 
-    db.execute(text("DELETE FROM refresh_tokens WHERE user_id IN (SELECT id FROM users WHERE username = :u)"),
-               {"u": "test_admin"})
     db.execute(text("DELETE FROM users WHERE username = 'test_admin'"))
     db.commit()
 
