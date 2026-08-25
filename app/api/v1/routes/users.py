@@ -10,6 +10,13 @@ router = APIRouter()
 
 @router.post("/")
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
+    username_exists = db.query(User).filter(User.username == user.username).first()
+    if username_exists:
+        raise HTTPException(status_code=409, detail="Username already in use")
+    email_exists = db.query(User).filter(User.email == user.email).first()
+    if email_exists:
+        raise HTTPException(status_code=409, detail="Email already in use")
+
     hashed_pw = hash_password(user.password)
 
     new_user = User(

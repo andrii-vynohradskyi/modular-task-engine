@@ -30,7 +30,7 @@ def regular_user(db):
     })
     db.commit()
 
-    yield {"username": "test_regular", "password": "testpass123"}
+    yield {"username": "test_regular", "password": "testpass123", "email": "regular@test.local"}
 
     db.execute(text("DELETE FROM users WHERE username = 'test_regular'"))
     db.commit()

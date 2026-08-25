@@ -1,5 +1,3 @@
-from http.client import responses
-
 from app.tests.conftest import regular_token
 
 
