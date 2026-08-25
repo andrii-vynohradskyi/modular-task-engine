@@ -8,3 +8,4 @@ Archive.zip
 .gitignore
 /.env/
 /.env
+__pycache__/
