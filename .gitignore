@@ -9,3 +9,7 @@ Archive.zip
 /.env/
 /.env
 __pycache__/
+*.pyc
+*.db
+*.zip
+.idea/
