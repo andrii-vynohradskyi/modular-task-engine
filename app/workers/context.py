@@ -17,7 +17,6 @@ class TaskContext:
     def refresh(self):
         self.db.refresh(self.task)
 
-
     def _apply_event_atomic(self, event, extra_values=None):
         self.refresh()
 
@@ -46,6 +45,8 @@ class TaskContext:
         self.db.commit()
         self.db.refresh(self.task)
 
+        return new_status
+
     def success(self, result: dict):
         self._apply_event_atomic(
             TaskEvent.SUCCESS,
@@ -69,7 +70,7 @@ class TaskContext:
         self.db.commit()
 
     def error(self, error: str):
-        self._apply_event_atomic(
+        new_status = self._apply_event_atomic(
             TaskEvent.ERROR,
             extra_values={
                 "last_error": error,
@@ -78,10 +79,10 @@ class TaskContext:
             },
         )
 
-        backoff = min(60 * (2 ** (self.task.attempts - 1)), 3600)
-
-        self.task.scheduled_at = datetime.now(timezone.utc) + timedelta(seconds=backoff)
-        self.db.commit()
+        if new_status == TaskStatus.PENDING:
+            backoff = min(60 * (2 ** (self.task.attempts - 1)), 3600)
+            self.task.scheduled_at = datetime.now(timezone.utc) + timedelta(seconds=backoff)
+            self.db.commit()
 
         #log
         self.db.query(TaskAttempt).filter(
@@ -116,19 +117,25 @@ class TaskContext:
         self.db.commit()
 
     def worker_died(self):
+        new_status = self._apply_event_atomic(
+            TaskEvent.WORKER_DIED,
+            extra_values={
+                "current_attempt_id": None,
+            },
+        )
+
+        if new_status == TaskStatus.PENDING:
+            backoff = min(60 * (2 ** (self.task.attempts - 1)), 3600)
+            self.task.scheduled_at = datetime.now(timezone.utc) + timedelta(seconds=backoff)
+            self.db.commit()
+
         self.db.query(TaskAttempt).filter(
             TaskAttempt.attempt_id == self.attempt_id
         ).update({
             "finished_at": datetime.now(timezone.utc),
             "status": "zombie",
         })
-
-        self._apply_event_atomic(
-            TaskEvent.WORKER_DIED,
-            extra_values={
-                "current_attempt_id": None,
-            },
-        )
+        self.db.commit()
 
     def heartbeat(self):
         stmt = (

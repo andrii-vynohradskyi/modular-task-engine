@@ -38,7 +38,7 @@ class TaskStateMachine:
             return transition
 
 
-def on_worker_died(task):
+def retry_or_fail(task):
     if task.attempts >= task.max_attempts:
         return TaskStatus.FAILED
     return TaskStatus.PENDING
@@ -49,9 +49,9 @@ ALLOWED_TRANSITIONS = {
     (TaskStatus.PENDING, TaskEvent.CANCEL): TaskStatus.CANCELLED,
 
     (TaskStatus.RUNNING, TaskEvent.SUCCESS): TaskStatus.DONE,
-    (TaskStatus.RUNNING, TaskEvent.ERROR): TaskStatus.FAILED,
+    (TaskStatus.RUNNING, TaskEvent.ERROR): retry_or_fail,
     (TaskStatus.RUNNING, TaskEvent.CANCEL): TaskStatus.CANCELLED,
-    (TaskStatus.RUNNING, TaskEvent.WORKER_DIED): on_worker_died,
+    (TaskStatus.RUNNING, TaskEvent.WORKER_DIED): retry_or_fail,
 }
 
 STATE_MACHINE = TaskStateMachine()
