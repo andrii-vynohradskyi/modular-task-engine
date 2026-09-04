@@ -21,6 +21,7 @@ db.execute(text("""
         ('dummy_sleep', 3),
         ('send_email', 5),
         ('cleanup', 1)
+        ('recovery', 1)
     ON CONFLICT (type) DO NOTHING
 """))
 
@@ -39,6 +40,13 @@ db.execute(text("""
     INSERT INTO tasks (user_id, type, payload, status, priority, scheduled_at, max_runtime, attempts, max_attempts)
     VALUES (1, 'cleanup', '{"older_than_days": 7, "next_run_in_hours": 24}', 'pending', 0, now(), 300, 0, 3)
 """))
+
+# First recovery task
+db.execute(text("""
+    INSERT INTO tasks (user_id, type, payload, status, priority, scheduled_at, max_runtime, attempts, max_attempts)
+    VALUES (1, 'recovery', '{"heartbeat_timeout": 30, "next_run_in_seconds": 10}', 'pending', 0, now(), 300, 0, 3)
+"""))
+
 
 db.commit()
 db.close()

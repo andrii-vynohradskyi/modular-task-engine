@@ -70,38 +70,6 @@ def handle_shutdown(signum, frame):
     log("worker_shutdown_signal_received", worker_id=WORKER_ID, signal=signum)
 
 
-def recover_stuck_tasks(db: Session):
-    now = datetime.now(timezone.utc)
-    threshold = now - timedelta(seconds=5)
-    stuck_tasks = (
-        db.query(Task)
-        .filter(
-            Task.status == TaskStatus.RUNNING,
-            or_(
-                Task.last_heartbeat_at < threshold,
-                and_(
-                    Task.last_heartbeat_at.is_(None),
-                    text("started_at + (max_runtime || ' seconds')::interval < now()")
-                )
-            )
-        )
-        .all()
-    )
-
-    for task in stuck_tasks:
-        ctx = TaskContext(task, db)
-        try:
-            ctx.worker_died()
-            log(
-                event="task_recovered",
-                worker_id=WORKER_ID,
-                task_id=task.id,
-                attempt_id=task.current_attempt_id,
-            )
-        except (InvalidTransition, RuntimeError):
-            pass
-
-
 def execute_task(task: Task, ctx: TaskContext, db: Session):
     log(
         event="task_execution_started",
