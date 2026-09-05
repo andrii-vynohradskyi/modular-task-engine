@@ -1,5 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from app.core.config import settings
 #from pathlib import Path
 
 #BASE_DIR = Path(__file__).resolve().parent.parent
@@ -8,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 DATABASE_URL = "postgresql+psycopg2://taskengine:taskengine@localhost:5432/taskengine"
 
 engine = create_engine(
-    DATABASE_URL,
+    settings.DATABASE_URL,
     pool_size=20,
     max_overflow=40,
     pool_pre_ping=True,

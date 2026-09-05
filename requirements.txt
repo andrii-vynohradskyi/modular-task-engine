@@ -6,3 +6,4 @@ pydantic
 sqlalchemy
 passlib
 httpx
+alembic

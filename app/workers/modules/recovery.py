@@ -14,7 +14,6 @@ def run(ctx: TaskContext, payload: dict):
     next_run_in_seconds = payload.get("next_run_in_seconds", 10)
     next_run_at = now + timedelta(seconds=next_run_in_seconds)
 
-
     ctx.db.execute(text("""
                 INSERT INTO tasks (user_id, type, payload, status, priority, scheduled_at, max_runtime, attempts, max_attempts)
                 VALUES (1, 'recovery', :payload, 'pending', 100, :next_run_at, 300, 0, 3)
