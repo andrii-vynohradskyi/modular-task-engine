@@ -1,75 +1,70 @@
 import threading
 import uuid
-from datetime import datetime, timezone
 
 import pytest
 from sqlalchemy import text
 
 from app.database import SessionLocal
-from app.models.task import Task
 from app.workers.claim import claim_next_task
 
 
-def create_pending_task(db) -> int:
-    """Insert one pending task directly, return its id."""
+def create_pending_task(db, task_type) -> int:
     row = db.execute(
         text("""
         INSERT INTO tasks (user_id, type, payload, status, priority, scheduled_at, max_runtime, attempts, max_attempts)
-        VALUES (1, 'dummy_sleep', '{}', 'pending', 0, now(), 300, 0, 3)
+        VALUES (1, :type, '{}', 'pending', 0, now(), 300, 0, 3)
         RETURNING id
-        """)
+        """), {'type': task_type}
     ).fetchone()
     db.commit()
     return row[0]
 
-
-
-def worker_try_claim_and_hold(results: list, index: int, barrier: threading.Barrier):
-    """Claim a task, then wait at the barrier before releasing."""
+def worker_try_claim_and_hold(results: list, index: int, task_type):
     db = SessionLocal()
     try:
-        result = claim_next_task(db)
+        result = claim_next_task(db, allowed_types=[task_type])
         results[index] = result
-        barrier.wait()  # all threads wait here together
     finally:
         db.close()
 
 
-def test_concurrency_limit():
-    NUM = 10
-    LIMIT = 2
+def test_concurrency_limit(db):
+    task_ids = []
+    task_type = f"test_concurrency_{uuid.uuid4().hex[:8]}"
+    try:
+        num = 10
+        limit = 2
 
-    db = SessionLocal()
-    db.execute(text("""
-        INSERT INTO task_type_limits (type, max_concurrent)
-        VALUES ('dummy_sleep', :limit)
-        ON CONFLICT (type) DO UPDATE SET max_concurrent = :limit
-    """), {"limit": LIMIT})
-    db.commit()
-    task_ids = [create_pending_task(db) for _ in range(NUM)]
-    db.close()
+        task_type = f"test_concurrency_{uuid.uuid4().hex[:8]}"
 
-    results = [None] * NUM
-    barrier = threading.Barrier(NUM)  # all threads pause at the same point
+        db.execute(text("""
+            INSERT INTO task_type_limits (type, max_concurrent)
+            VALUES (:type, :limit)
+        """), {"type": task_type, "limit": limit})
+        db.commit()
 
-    threads = [
-        threading.Thread(target=worker_try_claim_and_hold, args=(results, i, barrier))
-        for i in range(NUM)
-    ]
-    for t in threads:
-        t.start()
-    for t in threads:
-        t.join()
+        task_ids = [create_pending_task(db, task_type) for _ in range(num)]
 
-    claimed = [r for r in results if r is not None]
+        results = [None] * num
 
-    # Cleanup
-    db = SessionLocal()
-    for tid in task_ids:
-        db.execute(text("DELETE FROM task_effects WHERE task_id = :id"), {"id": tid})
-        db.execute(text("DELETE FROM task_attempts WHERE task_id = :id"), {"id": tid})
-        db.execute(text("DELETE FROM tasks WHERE id = :id"), {"id": tid})
-    db.commit()
-    db.close()
+        threads = [
+            threading.Thread(target=worker_try_claim_and_hold, args=(results, i, task_type))
+            for i in range(num)
+        ]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
 
-    assert len(claimed) == LIMIT
+        claimed = [r for r in results if r is not None]
+        claimed_task_ids = [r[0].id for r in claimed]
+        assert len(claimed) == limit
+        assert len(set(claimed_task_ids)) == limit
+    finally:
+        for tid in task_ids:
+            db.execute(text("DELETE FROM task_effects WHERE task_id = :id"), {"id": tid})
+            db.execute(text("DELETE FROM task_attempts WHERE task_id = :id"), {"id": tid})
+            db.execute(text("DELETE FROM tasks WHERE id = :id"), {"id": tid})
+        db.execute(text("DELETE FROM task_type_limits WHERE type = :type"), {"type": task_type})
+        db.commit()
+
