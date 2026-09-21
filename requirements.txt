@@ -7,3 +7,7 @@ sqlalchemy
 passlib
 httpx
 alembic
+psycopg2-binary
+uvicorn
+python-multipart
+argon2-cffi
