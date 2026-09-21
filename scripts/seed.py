@@ -20,7 +20,7 @@ db.execute(text("""
     VALUES
         ('dummy_sleep', 3),
         ('send_email', 5),
-        ('cleanup', 1)
+        ('cleanup', 1),
         ('recovery', 1)
     ON CONFLICT (type) DO NOTHING
 """))
