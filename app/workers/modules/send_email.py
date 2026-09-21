@@ -1,12 +1,13 @@
 import smtplib
 from email.message import EmailMessage
 from time import sleep
+from app.core.config import Settings
 
 from app.workers.context import TaskContext
 from ..rate_limiter import acquire_token
 
-SMTP_HOST = "localhost"
-SMTP_PORT = 1025
+SMTP_HOST = Settings.SMTP_HOST
+SMTP_PORT = Settings.SMTP_PORT
 FROM_EMAIL = "noreply@taskengine.local"
 RETRY_INTERVAL = 1
 
@@ -33,7 +34,6 @@ def run(ctx: TaskContext, payload: dict):
 
             with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:
                 smtp.send_message(msg)
-            #time.sleep(1)  # simulate slow sending
         else:
             pass
         ctx.set_progress(int((i + 1) / count * 100))

@@ -39,6 +39,6 @@ services:
     env_file: .env
     environment:
         DATABASE_URL: postgresql+psycopg2://taskengine:taskengine@postgres:5432/taskengine
-
+        SMTP_HOST: mailhog
 volumes:
   postgres_data:

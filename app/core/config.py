@@ -16,6 +16,9 @@ class Settings(BaseSettings):
 
     ADMIN_PASSWORD: str
 
+    SMTP_HOST: str = "localhost"
+    SMTP_PORT: int = 1025
+
     model_config = SettingsConfigDict(
         env_file=Path(__file__).resolve().parents[2] / ".env"
     )
